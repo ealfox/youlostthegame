@@ -51,6 +51,11 @@ class BadCloud():
     def draw(self):
         screen.blit(badcloudimg, [self.x, self.y])
 
+# odtud by to asi mohla byt funkce ?? ja doprdele nevim
+# a kde si jako resetnes veci a co budes delat s casem lol <- KOUKEJ TO VYRESIT IDIOTE, TOHLE JE PROBLEM
+# kaslu na to, proste tohle nebudou pouzivat  l i d i   a ja budu moct jit spinkat
+
+
 clouds = [] # field for clouds
 badClouds = [] # field for bad clouds
 timemin = 800 # min and max for generating random amounts of time between clouds spawning
@@ -60,15 +65,18 @@ timechangingstamp = 10000
 n=2   # later used for multiplying to set timechangingstamp
 badProbability = 5
 
+score = 0
+gameover = False
+
 # pygame.time.set_timer(pygame.USEREVENT+2, generatingtime)  #timer for generating new clouds - NOT USED
 # pygame.time.get_ticks()  using this only for copying lol
 
 while True:
     k = pygame.key.get_pressed()
     # changing the character's coordinates
-    if k[pygame.K_LEFT]:
+    if k[pygame.K_LEFT] and (charX > 0):
         charX = charX-movement
-    if k[pygame.K_RIGHT]:
+    if k[pygame.K_RIGHT] and (charX + charWidth < screenWidth):
         charX = charX+movement
 
     # generating new clouds
@@ -94,12 +102,13 @@ while True:
         timestamp = (pygame.time.get_ticks())+(random.randint(timemin,timemax))
 
     # every 10 seconds narrowing the range of rng for time between generating clouds
+    # does the sentence even make sense? idk anymore
     if pygame.time.get_ticks() >= timechangingstamp:
         if timemin >= 40:
             timemin -=40
 
-        if timemax >=500:
-            timemax -=125
+        if timemax >=400:
+            timemax -=200
 
         timechangingstamp = n * 10000
         n += 1
@@ -113,6 +122,23 @@ while True:
         if badcloud.y >= screenHeight-(150*ratio)-badCloudHeight:
             badClouds.pop(badClouds.index(badcloud))
 
+    # checks if the player's catched the good cloud and eventually increases the score
+    for cloud in clouds:
+        if ( cloud.x < charX and cloud.x+cloudWidth < charX ) or ( cloud.x > charX+charWidth and cloud.x+cloudWidth > charX+charWidth ):
+            clouds = clouds
+        else:
+            if (cloud.y + cloudHeight) >= charY:
+                clouds.pop(clouds.index(cloud))
+                score +=1
+
+    #checking if the player hit the bad one
+    for badcloud in badClouds:
+        if (badcloud.x < charX and badcloud.x+badCloudWidth < charX) or (badcloud.x > charX+charWidth and badcloud.x+badCloudWidth > charX+charWidth):
+            badClouds = badClouds
+        else:
+            if (badcloud.y + badCloudHeight) >= charY:
+                print("you lost")
+                gameover = True
     #drawing stuff on screen
     screen.fill([200, 150, 100])  # bg color - basically useless but it's there
     screen.blit(bg, (0, 0))  # drawing background
@@ -129,20 +155,20 @@ while True:
 
     pygame.event.pump()
     pygame.display.flip()
-    print(clouds)
+    print(score)
 
     # temporary escape way, will do a better one later
     if pygame.key.get_pressed()[pygame.K_ESCAPE]:
         break
 
+    if gameover == True:
+        break
+
 """
 To do:
-- interacting with clouds
-- counting of points
 - probability of spawning bad clouds (based on points)
 - play again function (and the 'you lose' screen in general)
 - showing highscore
-
 
 To do later or something:
 - lives
