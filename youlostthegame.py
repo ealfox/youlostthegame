@@ -4,21 +4,32 @@ import os
 
 pygame.init()
 
-screenWidth = 1000
+
+# paths to files - CHANGE THEM IF WORKING WITH THE CODE
+fontpath = os.path.join('/Users/eliska/Downloads/joystix/joystixmonospace.ttf')
+bgpath = os.path.join('/Users/eliska/Documents/youlost/design', 'bg.png')
+charpath = os.path.join('/Users/eliska/Documents/youlost/code/cloudodge', 'char.png')
+cloudpath = os.path.join('/Users/eliska/Documents/youlost/design', 'goodcloud.png')
+badcloudpath = os.path.join('/Users/eliska/Documents/youlost/design', 'badcloud.png')
+endpath = os.path.join('/Users/eliska/Documents/youlost/design', 'endscreen.png')
+
+# setting the screen
+sizeinfo = pygame.display.Info()
+screenWidth = sizeinfo.current_w
 screenHeight = int(screenWidth*768/1366)
-screen = pygame.display.set_mode([screenWidth, screenHeight])
-ratio = screenHeight/900
-font = pygame.font.Font(os.path.join('/Users/eliska/Downloads/joystix/joystixmonospace.ttf'), int(40 * ratio))
+screen = pygame.display.set_mode([screenWidth,screenHeight])
+
+ratio = screenHeight/900  # used for adjusting sizes according to screen size
+font = pygame.font.Font(fontpath, int(40 * ratio))
 
 highscore = 0
+attempts = 1
+
+
 
 def gamerunning():
     #display
-    screenWidth = 1000
-    screenHeight = int(screenWidth*768/1366)
-    screen = pygame.display.set_mode([screenWidth, screenHeight])
-    ratio = screenHeight/900
-    bgimg = pygame.image.load(os.path.join('/Users/eliska/Documents/youlost/code/cloudodge', 'bg.png'))
+    bgimg = pygame.image.load(bgpath)
     bg = pygame.transform.smoothscale(bgimg, [screenWidth, screenHeight])
 
     #character
@@ -26,21 +37,21 @@ def gamerunning():
     charHeight = 110*ratio
     charX = screenWidth/2
     charY = screenHeight-(150*ratio)-charHeight
-    movement = ratio*10
-    char = pygame.image.load(os.path.join('/Users/eliska/Documents/youlost/code/cloudodge', 'char.png'))
+    movement = (screenWidth/90) * ratio
+    char = pygame.image.load(charpath)
     char = pygame.transform.smoothscale(char, [int(ratio*60), int(ratio*110)])
 
     #clouds
     cloudWidth = ratio * 180
     cloudHeight = ratio * 80
-    speed = 8
+    speed = (screenHeight/70) * ratio
     cloudMovement = ratio*speed
-    cloudimg = pygame.image.load(os.path.join('/Users/eliska/Documents/youlost/design', 'goodcloud.png'))
+    cloudimg = pygame.image.load(cloudpath)
     cloudimg = pygame.transform.smoothscale(cloudimg, [int(cloudWidth), int(cloudHeight)])
 
     badCloudWidth = 220 * ratio
     badCloudHeight = 100 * ratio
-    badcloudimg = pygame.image.load(os.path.join('/Users/eliska/Documents/youlost/design', 'badcloud.png'))
+    badcloudimg = pygame.image.load(badcloudpath)
     badcloudimg = pygame.transform.smoothscale(badcloudimg, [int(badCloudWidth), int(badCloudHeight)])
 
     class Cloud():
@@ -80,6 +91,8 @@ def gamerunning():
 
     clock=pygame.time.Clock()
     time = 0
+
+    font = pygame.font.Font(fontpath, int(30 * ratio))
 
     while True:
         clock.tick()
@@ -136,11 +149,14 @@ def gamerunning():
                 badClouds = badClouds
             else:
                 if (badcloud.y + badCloudHeight) >= charY:
-                    print("you lost")
                     gameover = True
+
+        #as the player gets more points, the probability of spawning a bad cloud increases
+        if score % 100 == 0 and badProbability > 1 and score != 0:
+            badProbability -= 1
+
         #drawing stuff on screen
         screen.blit(bg, (0, 0))  # drawing background
-        #pygame.draw.rect(screen, [255, 0, 0], [charX, charY, charWidth, charHeight])  # useless already but keeping it here just in case i'd forget
         screen.blit(char, (charX, charY))
 
         # changing coordinates of clouds and drawing them on screen
@@ -151,26 +167,32 @@ def gamerunning():
             badcloud.y += cloudMovement
             badcloud.draw()
 
+        scorecounter = font.render("Score: " + str(score), True, (255,255,255), (60,160,145))
+        screen.blit(scorecounter, ((1600-300)*ratio, 50*ratio))
+
+        attemptcounter = font.render("Attempt: " + str(attempts), True, (255, 255, 255), (70, 200, 125))
+        screen.blit(attemptcounter, ((1600 - 625) * ratio, 50 * ratio))
+
         pygame.event.pump()
         pygame.display.flip()
 
         time += clock.get_time()
 
         # temporary escape way, will do a better one later
-        if pygame.key.get_pressed()[pygame.K_ESCAPE]:
+        if pygame.key.get_pressed()[pygame.K_q]:
             break
 
         if gameover == True:
             break
-        print(score)
-        print(time)
+
     return score
 
-# tenhle while bude funkce endscreen()
+
+
 def endscreen():
     newhighscore = False
     gameended = False
-    endimg = pygame.image.load(os.path.join('/Users/eliska/Documents/youlost/design', 'endscreen.png'))
+    endimg = pygame.image.load(endpath)
     endimg = pygame.transform.smoothscale(endimg, [screenWidth, screenHeight])
 
     # creating text
@@ -211,30 +233,23 @@ def endscreen():
     return gameended
 
 
-
-# TADY UZ BEZEJ VECI
-score = gamerunning()
+# here it finally runs haha
+score = gamerunning() # first it runs the game
 while True:
     gameended = endscreen()
-    if gameended:
+    if gameended == True:
         break
     else:
         try:
             highscore = highscoreNEW
         except:
             highscore = highscore
+        attempts += 1
         score = gamerunning()
-
-
-
-
 
 """
 To do:
-- probability of spawning bad clouds (based on points)
-- play again function (and the 'you lose' screen in general)
-- showing highscore
-- navigation texts on end scr
+done everything yay
 
 To do later or something:
 - lives
