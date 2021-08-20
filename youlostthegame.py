@@ -11,16 +11,8 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
 
     return os.path.join(base_path, relative_path)
-"""
-# paths to files - CHANGE THEM IF WORKING WITH THE CODE
-fontpath = resource_path(os.path.join('/Users/eliska/Downloads/joystix/joystixmonospace.ttf'))
-# bgpath = resource_path(os.path.join('/Users/eliska/Documents/youlost/design', 'bg.png'))
-# charpath = resource_path(os.path.join('/Users/eliska/Documents/youlost/code/cloudodge', 'char.png'))
-cloudpath = resource_path(os.path.join('/Users/eliska/Documents/youlost/design', 'goodcloud.png'))
-badcloudpath = resource_path(os.path.join('/Users/eliska/Documents/youlost/design', 'badcloud.png'))
-endpath = resource_path(os.path.join('/Users/eliska/Documents/youlost/design', 'endscreen.png'))
-"""
 
+# paths to files used in game
 fontpath = resource_path('joystixmonospace.ttf')
 bgpath = resource_path('bg.png')
 charpath = resource_path('char.png')
@@ -43,11 +35,11 @@ attempts = 1
 
 
 def gamerunning():
-    #display
+    # display
     bgimg = pygame.image.load(bgpath)
     bg = pygame.transform.smoothscale(bgimg, [screenWidth, screenHeight])
 
-    #character
+    # character
     charWidth = 60*ratio
     charHeight = 110*ratio
     charX = screenWidth/2
@@ -56,7 +48,7 @@ def gamerunning():
     char = pygame.image.load(charpath)
     char = pygame.transform.smoothscale(char, [int(ratio*60), int(ratio*110)])
 
-    #clouds
+    # good clouds
     cloudWidth = ratio * 180
     cloudHeight = ratio * 80
     speed = (screenHeight/70) * ratio
@@ -64,11 +56,13 @@ def gamerunning():
     cloudimg = pygame.image.load(cloudpath)
     cloudimg = pygame.transform.smoothscale(cloudimg, [int(cloudWidth), int(cloudHeight)])
 
+    # bad clouds
     badCloudWidth = 220 * ratio
     badCloudHeight = 100 * ratio
     badcloudimg = pygame.image.load(badcloudpath)
     badcloudimg = pygame.transform.smoothscale(badcloudimg, [int(badCloudWidth), int(badCloudHeight)])
 
+    # classes for clouds
     class Cloud():
         def __init__(self,cloudX,cloudY):
             self.x=cloudX
@@ -85,10 +79,6 @@ def gamerunning():
         def draw(self):
             screen.blit(badcloudimg, [self.x, self.y])
 
-    # odtud by to asi mohla byt funkce ?? ja doprdele nevim
-    # a kde si jako resetnes veci a co budes delat s casem lol <- KOUKEJ TO VYRESIT IDIOTE, TOHLE JE PROBLEM
-    # kaslu na to, proste tohle nebudou pouzivat  l i d i   a ja budu moct jit spinkat
-
     # declaring fields
     clouds = []
     badClouds = []
@@ -100,7 +90,7 @@ def gamerunning():
     timechangingstamp = 10000
     n=2   # later used for multiplying to set timechangingstamp
     badProbability = 5
-    probabilityChanged = False  # don't mind this cute variable, it's used later in probability of bad cloud spawning changing if
+    probabilityChanged = False  # don't mind this cute variable, it's used later for changing the probability of bad cloud spawning
 
     score = 0
     gameover = False
@@ -119,7 +109,6 @@ def gamerunning():
         if k[pygame.K_RIGHT] and (charX + charWidth < screenWidth):
             charX = charX+movement
 
-        # how the fuck does this work?
         # generates a cloud once per a random amount of time
         if time >= timestamp:
             r = random.randrange(0, badProbability)  # decides if the cloud will be bad or good
@@ -129,7 +118,7 @@ def gamerunning():
                 clouds.append(Cloud(random.randint(0, int(screenWidth - cloudWidth)), 0))
             timestamp = time+(random.randint(timemin,timemax))
 
-        # every 10 seconds narrowing the range of rng for time between generating clouds
+        # every 10 seconds narrowing the range of rng for delays between generating clouds
         # does the sentence even make sense? idk anymore
         if time >= timechangingstamp:
             if timemin >= 40:
@@ -143,7 +132,6 @@ def gamerunning():
             cloudMovement += 0.35  # increases the velocity of clouds' fall
             movement += 0.2  # increases the player's movement velocity
 
-
         # checking whether the clouds have reached the ground
         for cloud in clouds:  # checking the good ones and deleting those on ground from the array
             if cloud.y >= screenHeight-(150*ratio)-cloudHeight:
@@ -152,7 +140,7 @@ def gamerunning():
             if badcloud.y >= screenHeight-(150*ratio)-badCloudHeight:
                 badClouds.pop(badClouds.index(badcloud))
 
-        # checks if the player's catched the good cloud and eventually increases the score
+        # checks if the player's caught the good cloud and eventually increases the score
         for cloud in clouds:
             if ( cloud.x < charX and cloud.x+cloudWidth < charX ) or ( cloud.x > charX+charWidth and cloud.x+cloudWidth > charX+charWidth ):
                 clouds = clouds
@@ -161,9 +149,9 @@ def gamerunning():
                     clouds.pop(clouds.index(cloud))
                     score +=1
 
-        #checking if the player hit the bad one
+        #checking if the player hit any of the bad ones
         for badcloud in badClouds:
-            if (badcloud.x < charX and badcloud.x+badCloudWidth < charX) or (badcloud.x > charX+charWidth and badcloud.x+badCloudWidth > charX+charWidth):
+            if (badcloud.x < charX and badcloud.x+badCloudWidth < charX) or (badcloud.x > charX+charWidth and badcloud.x + badCloudWidth > charX+charWidth):
                 badClouds = badClouds
             else:
                 if (badcloud.y + badCloudHeight) >= charY:
@@ -178,8 +166,9 @@ def gamerunning():
             probabilityChanged = False  # once the score is 1 higher, it is set back to false
 
 
-        #drawing stuff on screen
-        screen.blit(bg, (0, 0))  # drawing background
+        # drawing stuff on screen
+
+        screen.blit(bg, (0, 0))
         screen.blit(char, (charX, charY))
 
         # changing coordinates of clouds and drawing them on screen
@@ -201,7 +190,7 @@ def gamerunning():
 
         time += clock.get_time()
 
-        # temporary escape way, will do a better one later
+        # my way to quickly end the game during testing, keeping it here because it's still useful sometimes
         if pygame.key.get_pressed()[pygame.K_q]:
             break
 
@@ -223,6 +212,7 @@ def endscreen():
     scoreY = 350 * ratio
     scoreX = 0.5 * screenWidth - 0.5 * (font.size("Score: " + str(score))[0])
 
+    # determining if the new score is the highest and showing the appropriate text
     if score > highscore:
         newhighscore = True
         highscoretxt = "New highscore!"
@@ -234,7 +224,7 @@ def endscreen():
     highscoreY = 420*ratio
     instructions = font.render("Press F to play again, esc to end", True, [255,240,100])
 
-    #draws stuff on screen, every frame is the same so its kinda useless but it does weird things when i do it differently
+    # draws stuff on screen, every frame is the same so most of it is kinda useless but it does weird things when i do it differently
     while True:
         screen.blit(endimg, (0, 0))
         screen.blit(scoretxt, (scoreX, scoreY))
