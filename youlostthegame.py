@@ -4,14 +4,29 @@ import os
 
 pygame.init()
 
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
 
+    return os.path.join(base_path, relative_path)
+"""
 # paths to files - CHANGE THEM IF WORKING WITH THE CODE
-fontpath = os.path.join('/Users/eliska/Downloads/joystix/joystixmonospace.ttf')
-bgpath = os.path.join('/Users/eliska/Documents/youlost/design', 'bg.png')
-charpath = os.path.join('/Users/eliska/Documents/youlost/code/cloudodge', 'char.png')
-cloudpath = os.path.join('/Users/eliska/Documents/youlost/design', 'goodcloud.png')
-badcloudpath = os.path.join('/Users/eliska/Documents/youlost/design', 'badcloud.png')
-endpath = os.path.join('/Users/eliska/Documents/youlost/design', 'endscreen.png')
+fontpath = resource_path(os.path.join('/Users/eliska/Downloads/joystix/joystixmonospace.ttf'))
+# bgpath = resource_path(os.path.join('/Users/eliska/Documents/youlost/design', 'bg.png'))
+# charpath = resource_path(os.path.join('/Users/eliska/Documents/youlost/code/cloudodge', 'char.png'))
+cloudpath = resource_path(os.path.join('/Users/eliska/Documents/youlost/design', 'goodcloud.png'))
+badcloudpath = resource_path(os.path.join('/Users/eliska/Documents/youlost/design', 'badcloud.png'))
+endpath = resource_path(os.path.join('/Users/eliska/Documents/youlost/design', 'endscreen.png'))
+"""
+
+fontpath = resource_path('joystixmonospace.ttf')
+bgpath = resource_path('bg.png')
+charpath = resource_path('char.png')
+cloudpath = resource_path('goodcloud.png')
+badcloudpath = resource_path('badcloud.png')
+endpath = resource_path('endscreen.png')
 
 # setting the screen
 sizeinfo = pygame.display.Info()
@@ -85,6 +100,7 @@ def gamerunning():
     timechangingstamp = 10000
     n=2   # later used for multiplying to set timechangingstamp
     badProbability = 5
+    probabilityChanged = False  # don't mind this cute variable, it's used later in probability of bad cloud spawning changing if
 
     score = 0
     gameover = False
@@ -119,11 +135,13 @@ def gamerunning():
             if timemin >= 40:
                 timemin -=40
 
-            if timemax >=400:
-                timemax -=200
+            if timemax >=1000:
+                timemax -=170
 
             timechangingstamp = n * 10000
             n += 1
+            cloudMovement += 0.35  # increases the velocity of clouds' fall
+            movement += 0.2  # increases the player's movement velocity
 
 
         # checking whether the clouds have reached the ground
@@ -151,9 +169,14 @@ def gamerunning():
                 if (badcloud.y + badCloudHeight) >= charY:
                     gameover = True
 
-        #as the player gets more points, the probability of spawning a bad cloud increases
-        if score % 100 == 0 and badProbability > 1 and score != 0:
+        # as the player gets more points, the probability of spawning a bad cloud increases
+        if score % 100 == 0 and badProbability > 1 and score != 0 and probabilityChanged == False:
             badProbability -= 1
+            probabilityChanged = True  # without this condition, it would decrease the prbblty every frame with score divisible by 100
+                                       # so don't touch it
+        if score % 100 == 1:
+            probabilityChanged = False  # once the score is 1 higher, it is set back to false
+
 
         #drawing stuff on screen
         screen.blit(bg, (0, 0))  # drawing background
@@ -211,7 +234,7 @@ def endscreen():
     highscoreY = 420*ratio
     instructions = font.render("Press F to play again, esc to end", True, [255,240,100])
 
-    #draws stuff on screen, every frame is the same so its kinda useless but it does weird things when i do it different
+    #draws stuff on screen, every frame is the same so its kinda useless but it does weird things when i do it differently
     while True:
         screen.blit(endimg, (0, 0))
         screen.blit(scoretxt, (scoreX, scoreY))
@@ -234,7 +257,7 @@ def endscreen():
 
 
 # here it finally runs haha
-score = gamerunning() # first it runs the game
+score = gamerunning()
 while True:
     gameended = endscreen()
     if gameended == True:
@@ -248,12 +271,10 @@ while True:
         score = gamerunning()
 
 """
-To do:
-done everything yay
-
 To do later or something:
 - lives
-- some fancy sidebar showing score, highscore and number of attempts
-- time, maybe?
-- redesign the bad cloud
+- some fancy sidebar showing score, highscore and number of attempts less awful than how it looks now 
+- time, maybe? idk this is always problematic, probably no
+- redesign the bad cloud !!! neeeeed that
+- more continuous changes in difficulty
 """
